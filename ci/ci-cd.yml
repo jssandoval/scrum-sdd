@@ -1,0 +1,59 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, desarrollo]
+  pull_request:
+    branches: [main, desarrollo]
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Trazabilidad
+        run: python3 .framework/scripts/trace.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Lint y auditoría de dependencias
+        run: |
+          npm run lint
+          npm audit --audit-level=high
+      - name: Pruebas
+        run: npm run test:coverage
+      - name: Imagen
+        run: docker build -t app:${{ github.sha }} .
+
+  staging:
+    needs: validar
+    if: github.event_name == 'push' && github.ref == 'refs/heads/desarrollo'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Despliegue staging
+        run: |
+          test -x ./scripts/deploy-staging.sh || { echo "Falta scripts/deploy-staging.sh: configurar en /setup"; exit 1; }
+          ./scripts/deploy-staging.sh
+      - name: Prueba de humo staging
+        run: |
+          test -x ./scripts/smoke-staging.sh || { echo "Falta scripts/smoke-staging.sh"; exit 1; }
+          ./scripts/smoke-staging.sh
+
+  produccion:
+    needs: validar
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production   # exige aprobación manual en GitHub
+    steps:
+      - uses: actions/checkout@v4
+      - name: Puerta de release
+        run: python3 .framework/scripts/gate.py check release
+      - name: Despliegue producción
+        run: |
+          test -x ./scripts/deploy-production.sh || { echo "Falta scripts/deploy-production.sh"; exit 1; }
+          ./scripts/deploy-production.sh
