@@ -204,12 +204,15 @@ def cmd_hu(state, args):
 
 
 def cmd_revert(state, args):
-    """Archiva fase aprobada y anula aprobaciones dependientes sin borrar documentos ni código."""
+    """Archiva la fase; opcionalmente retira sus entregables tras confirmación."""
     phase = args.fase
     if not state.get('fases', {}).get(phase):
         print(f"ERROR: fase '{phase}' no está aprobada; no hay aprobación que revertir.")
         return 1
-    # Se trata de una reversión controlada del workflow; la identidad es declarativa.
+    if args.modo == 'paso' and not args.confirmar_eliminar_paso:
+        print('BLOQUEADO: eliminar el paso requiere --confirmar-eliminar-paso tras confirmación humana.')
+        return 1
+    # La identidad es declarativa; la invocación humana se exige en el skill.
     stamp = datetime.datetime.now().strftime('%Y%m%dT%H%M%S%f')
     archive = pathlib.Path('docs/historico-fases') / f'{stamp}-{phase}-{uuid.uuid4().hex[:8]}'
     archive.mkdir(parents=True, exist_ok=False)
@@ -223,30 +226,60 @@ def cmd_revert(state, args):
         'backlog': 'docs/05-scrum', 'setup': None,
     }
     folder = folder_map[phase]
-    if folder and pathlib.Path(folder).exists():
-        shutil.copytree(folder, archive / folder, dirs_exist_ok=True)
-    elif pathlib.Path(ARTIFACT[phase]).exists():
-        dest = archive / ARTIFACT[phase]
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ARTIFACT[phase], dest)
+    source = pathlib.Path(folder) if folder else pathlib.Path(ARTIFACT[phase])
+    if args.modo == 'paso' and (not source.exists() or source.is_symlink()):
+        print(f'ERROR: no existe una fuente válida para retirar: {source}')
+        shutil.rmtree(archive)
+        return 1
+    if source.exists():
+        dest = archive / source
+        if source.is_dir():
+            if any(p.is_symlink() for p in source.rglob('*')):
+                print('BLOQUEADO: no se retiran fases que contienen enlaces simbólicos.')
+                shutil.rmtree(archive)
+                return 1
+            shutil.copytree(source, dest)
+            if sorted(p.relative_to(source) for p in source.rglob('*') if p.is_file()) != sorted(p.relative_to(dest) for p in dest.rglob('*') if p.is_file()):
+                print('ERROR: copia de respaldo incompleta; no se retira el paso.')
+                shutil.rmtree(archive)
+                return 1
+            for f in source.rglob('*'):
+                if f.is_file() and digest(f) != digest(dest / f.relative_to(source)):
+                    print('ERROR: el respaldo no coincide; no se retira el paso.')
+                    shutil.rmtree(archive)
+                    return 1
+        else:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, dest)
+            if digest(source) != digest(dest):
+                print('ERROR: respaldo no coincide; no se retira el paso.')
+                shutil.rmtree(archive)
+                return 1
     # Si se revierten requisitos, no tocar documentación fuente de terceros.
     old_state = json.dumps(state, ensure_ascii=False, indent=2) + '\n'
     (archive / 'estado-anterior.json').write_text(old_state, encoding='utf-8')
     record = {
-        'fase': phase, 'por': args.por, 'motivo': args.motivo,
+        'fase': phase, 'modo': args.modo, 'por': args.por, 'motivo': args.motivo,
         'fecha': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         'aprobaciones_invalidadas': list(previous),
         'hu_conservadas': len(state.get('hu', {})),
-        'nota': 'Se revocan las aprobaciones desde esta fase. No se modifican documentos, código ni HU.',
+        'nota': ('Se archiva y retira únicamente el entregable de la fase; el resto del proyecto y las HU se conservan.' if args.modo == 'paso' else 'Solo se revocan aprobaciones; documentos, código y HU conservados.'),
+        'entregables': str(source),
     }
     (archive / 'reversion.json').write_text(json.dumps(record, indent=2, ensure_ascii=False)+'\n', encoding='utf-8')
+    if args.modo == 'paso' and source.exists():
+        if source.is_dir():
+            shutil.rmtree(source)
+        else:
+            source.unlink()
     for p in invalidated:
         state.get('fases', {}).pop(p, None)
     state.setdefault('reversiones', []).append({**record, 'ruta': archive.as_posix()})
     save(state)
     print(f'OK: fase {phase} revertida por {args.por}. Histórico: {archive}')
     print('Aprobaciones invalidadas:', ', '.join(previous))
-    print('Documentación, código e historias existentes preservados para revisión.')
+    print('Paso archivado y retirado del proyecto activo.' if args.modo == 'paso' else 'Entregables conservados; solo se retiraron aprobaciones.')
+    print('Código, historias, fuentes originales y archivos de otras fases preservados.')
     return 0
 
 
@@ -277,6 +310,8 @@ def main():
     p.add_argument('fase', choices=ORDER)
     p.add_argument('--por', required=True)
     p.add_argument('--motivo', required=True)
+    p.add_argument('--modo', choices=['aprobacion', 'paso'], default='aprobacion')
+    p.add_argument('--confirmar-eliminar-paso', action='store_true')
     p.set_defaults(fn=cmd_revert)
 
     args = parser.parse_args()

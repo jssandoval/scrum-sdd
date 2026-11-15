@@ -11,7 +11,7 @@ git init
 git branch -M main
 git remote add origin https://github.com/jssandoval/scrum-sdd.git
 git add .
-git commit -m "Publicar SSDD (Scrum-SDD) v0.4.6 y distribución desde GitHub"
+git commit -m "Publicar SSDD (Scrum-SDD) v0.4.7 y distribución desde GitHub"
 git push -u origin main
 ```
 
@@ -20,11 +20,11 @@ Si el repositorio ya tiene commits o un README propio, primero integra esos camb
 ## Primera versión descargable
 
 ```bash
-git tag -a v0.4.6 -m "SSDD (Scrum-SDD) v0.4.6"
-git push origin v0.4.6
+git tag -a v0.4.7 -m "SSDD (Scrum-SDD) v0.4.7"
+git push origin v0.4.7
 ```
 
-La acción `.github/workflows/release.yml` verifica pruebas y crea automáticamente el Release con ZIP y `SHA256SUMS.txt` cuando se publica la etiqueta. Revisa **Actions** y **Releases** en GitHub. El instalador remoto requiere que exista la etiqueta `v0.4.6`.
+La acción `.github/workflows/release.yml` verifica pruebas y crea automáticamente el Release con ZIP y `SHA256SUMS.txt` cuando se publica la etiqueta. Revisa **Actions** y **Releases** en GitHub. El instalador remoto requiere que exista la etiqueta `v0.4.7`.
 
 ## Instalación para terceros
 
@@ -40,7 +40,7 @@ Windows (PowerShell):
 irm https://raw.githubusercontent.com/jssandoval/scrum-sdd/main/install-remote.ps1 | iex
 ```
 
-Requisitos de instalación: Python 3.9+; un agente de IA compatible para utilizar el framework. Los scripts remotos descargan la etiqueta `v0.4.6`, no la versión cambiante de `main`. Antes de usar scripts remotos es recomendable revisar su contenido.
+Requisitos de instalación: Python 3.9+; un agente de IA compatible para utilizar el framework. Los scripts remotos descargan la etiqueta `v0.4.7`, no la versión cambiante de `main`. Antes de usar scripts remotos es recomendable revisar su contenido.
 
 ## Versiones anteriores
 

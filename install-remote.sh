@@ -2,8 +2,8 @@
 # Instala SSDD (Scrum-SDD) desde una etiqueta estable. Solo requiere Python 3.9+.
 # Ejemplo: curl -fsSL https://raw.githubusercontent.com/jssandoval/scrum-sdd/main/install-remote.sh | sh
 set -eu
-VERSION="${SSDD_VERSION:-v0.4.6}"
-case "$VERSION" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo 'Versión inválida (usa v0.4.6).' >&2; exit 1 ;; esac
+VERSION="${SSDD_VERSION:-v0.4.7}"
+case "$VERSION" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo 'Versión inválida (usa v0.4.7).' >&2; exit 1 ;; esac
 if command -v python3 >/dev/null 2>&1; then PY=python3
 elif command -v python >/dev/null 2>&1; then PY=python
 else echo 'Falta Python 3.9 o superior.' >&2; exit 1; fi

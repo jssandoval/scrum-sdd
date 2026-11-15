@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 0.4.7 — Arquitectura integral y dos formas de revertir
+- `/ssdd-arquitectura` evalúa todos los ámbitos relevantes según RF/RNF, propone componentes (incluidos estilos, colas, caché, operaciones, etc.), registra los no aplicables y pide aprobación humana expresa antes de diseñar.
+- `/ssdd-revertir` ofrece `--modo aprobacion` (conservar documentos) o `--modo paso` (respaldar y retirar los entregables de esa fase), este último con confirmación explícita.
+- Historial documental y revocación de aprobaciones dependientes conservados; sin borrar código ni fases posteriores.
+- Misma metodología, mismos 15 skills; cambios solo en los dos skills, soporte de reversión, plantilla y documentación.
+
 ## 0.4.6
 - Actualización de CLI global y proyectos existentes con `ssdd update`; conserva archivos del usuario.
 - Decisión humana obligatoria del stack (frontend, backend, interoperabilidad, persistencia, infraestructura) en `/ssdd-arquitectura`.

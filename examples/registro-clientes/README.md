@@ -20,3 +20,10 @@ Después de instalar la CLI una sola vez con `install-cli.sh` o `install-cli.ps1
 ### SSDD v0.4.6: selección del stack y reversión
 
 Tras `/ssdd-diseno`, llama a `/ssdd-arquitectura` y responde qué usarás en frontend, backend, interoperabilidad, persistencia e infraestructura. El agente muestra recomendaciones, pero **tú eliges**. Si luego necesitas reconsiderar la arquitectura ya aprobada, invoca `/ssdd-revertir arquitectura --por "Nombre" --motivo "Nueva decisión"`, inspecciona `docs/historico-fases/`, actualiza el ADR y vuelve a aprobar.
+
+
+### SSDD 0.4.7: decisiones arquitectónicas y dos reversiones
+
+En `/ssdd-arquitectura`, el agente debe proponer un stack **completo y proporcional** al problema (incluyendo estilos, autenticación, integraciones, caché, cola o tareas si corresponde, pruebas, CI/CD y operación) y pedir confirmación por componente. El desarrollador puede aceptar la propuesta o modificarla. Si el requisito no necesita mensajería o caché, se anota «no aplica», no se obliga a usarla.
+
+Tras aprobar arquitectura, prueba `/ssdd-revertir arquitectura --modo aprobacion --por "Persona" --motivo "Revisar elección"`: conserva los documentos. La alternativa `--modo paso` retira la carpeta `docs/04-arquitectura/` **después de respaldarla en `docs/historico-fases/` y confirmar humanamente**. Nunca retira el código de la aplicación.

@@ -1,23 +1,34 @@
 ---
 name: ssdd-revertir
-description: 'Revierte el cierre aprobado de una fase y guarda un histórico, exclusivamente por solicitud humana explícita.'
-argument-hint: '<fase> --por "<nombre>" --motivo "<razón>"'
+description: 'A solicitud humana, revoca la aprobación o retira los entregables completos de una fase archivándolos previamente.'
+argument-hint: '<fase> --modo aprobacion|paso --por "<nombre>" --motivo "<razón>"'
 disable-model-invocation: true
 ---
 
 Argumentos recibidos: $ARGUMENTS
 
-## Uso
-`/ssdd-revertir arquitectura --por "Nombre" --motivo "Cambiar stack"`
+## Dos modalidades: debes ofrecer ambas al usuario
+**A. Solo quitar aprobación (predeterminada)**:
+`/ssdd-revertir arquitectura --modo aprobacion --por "Nombre" --motivo "Reconsiderar stack"`
+- Archiva copia de la fase y estado anterior; retira la aprobación de esa fase y de todas las posteriores.
+- **Conserva intactos los entregables**, archivos originales, código y HU para editar y volver a aprobar.
+
+**B. Eliminar el paso completo (solamente tras confirmación humana explícita)**:
+`/ssdd-revertir arquitectura --modo paso --por "Nombre" --motivo "Rehacer arquitectura"`
+- Informa previamente qué directorio o archivo se retirará, qué aprobaciones posteriores se revocarán y que se guardará un respaldo restaurable.
+- Pregunta al humano **«¿Confirmas eliminar los entregables de esta fase después de archivarlos?»** y DETENTE si todavía no confirmó explícitamente esta acción. La mera mención de revertir no es consentimiento de eliminación.
+- Una vez que el humano confirme, ejecuta el comando con `--confirmar-eliminar-paso`.
+- Archiva **toda la carpeta de entregables de la fase**, el estado previo y el manifiesto, verifica el respaldo y **solo entonces** retira los documentos de esa fase del directorio activo. En `setup`, el alcance es únicamente `AGENTS.md`, no el código, contenedores, infraestructura ni otros archivos del proyecto.
+- No elimina entregables de otras fases, `docs/00-fuentes`, `docs/estado.json`, `specs/`, `src/`, `tests/`, ni commits Git. Las etapas siguientes dejan de estar aprobadas y sus documentos se conservan para revisión posterior.
 
 ## Restricción humana
-Únicamente cuando el usuario escribe explícitamente este skill. No invocarlo desde agentes, otros skills ni automatizaciones. Verificar nombre y motivo; no inventarlos. La CLI no autentica la identidad de quien invoca Python directamente.
+Únicamente cuando el usuario invoca explícitamente este skill. No invocarlo desde agentes, otros skills ni automatizaciones. Verificar fase, persona y motivo; no inventar datos. La CLI Python **no autentica** identidad si alguien accede directamente a la terminal.
 
 ## Procedimiento
-1. Confirmar que la fase indicada está aprobada y explicar que las aprobaciones **de esa fase y las posteriores** serán invalidadas.
-2. Ejecutar `python3 .framework/scripts/gate.py revert <fase> --por "<nombre>" --motivo "<razón>"` solo tras una solicitud explícita del humano mediante este skill.
-3. El script archiva una copia de documentos de esa fase, la fotografía del estado previo y una bitácora en `docs/historico-fases/` y revoca las aprobaciones dependientes.
-4. **No borrar, sobrescribir ni revertir automáticamente** código, documentos originales, aprobaciones de historias o archivos de trabajo; quedan para revisión y corrección con el skill de fase que corresponda.
-5. Mostrar la ubicación del histórico y el siguiente skill para rehacer la fase. Después se volverá a aprobar con `/ssdd-aprobar`.
+1. Si el usuario no especificó `--modo`, preguntar si desea solo retirar aprobación o retirar todo el paso. Si no desea eliminación, utilizar `aprobacion`.
+2. Mostrar consecuencias y alcance concreto. Verificar si la fase consta como aprobada; si no está aprobada, no proceder.
+3. Para `aprobacion`, ejecutar `python3 .framework/scripts/gate.py revert <fase> --modo aprobacion --por "<nombre>" --motivo "<razón>"`.
+4. Para `paso`, confirmar explícitamente la eliminación y entonces ejecutar `python3 .framework/scripts/gate.py revert <fase> --modo paso --confirmar-eliminar-paso --por "<nombre>" --motivo "<razón>"`.
+5. Comunicar directorio `docs/historico-fases/`, qué quedó archivado, qué se retiró del proyecto y cuál es el siguiente skill para rehacer la fase. No prometer restauración automática: el usuario puede recuperar la copia manualmente.
 
-No reabrir o modificar la fase sin petición del usuario. Revertir aprobación no equivale a Git rollback; cambios de código necesitan reversión Git independiente.
+Revertir una fase no equivale a revertir Git ni a deshacer el código desarrollado.

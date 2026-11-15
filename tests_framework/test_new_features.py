@@ -47,6 +47,53 @@ class FeatureTests(unittest.TestCase):
             bad=self.run_cmd(d,ROOT/'scripts/gate.py','revert','arquitectura','--por','Persona','--motivo','repetir')
             self.assertNotEqual(bad.returncode,0)
 
+    def test_revert_paso_requires_explicit_confirmation_no_changes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp)
+            folder=d/'docs/04-arquitectura'
+            folder.mkdir(parents=True)
+            (folder/'arquitectura-c4.md').write_text('original',encoding='utf-8')
+            before={'fases':{'arquitectura':{'por':'Persona','fecha':'2026-01-01','sha256':'abc'}},'hu':{}}
+            (d/'docs/estado.json').write_text(json.dumps(before),encoding='utf-8')
+            result=self.run_cmd(d,ROOT/'scripts/gate.py','revert','arquitectura','--modo','paso','--por','Persona','--motivo','rehacer')
+            self.assertNotEqual(result.returncode,0)
+            self.assertTrue((folder/'arquitectura-c4.md').exists())
+            self.assertEqual(json.loads((d/'docs/estado.json').read_text()),before)
+            self.assertFalse((d/'docs/historico-fases').exists())
+
+    def test_revert_paso_archives_entire_phase_preserving_other_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp)
+            folder=d/'docs/04-arquitectura/decisiones'
+            folder.mkdir(parents=True)
+            (d/'docs/04-arquitectura/arquitectura-c4.md').write_text('diagrama',encoding='utf-8')
+            (folder/'ADR-001.md').write_text('stack',encoding='utf-8')
+            (d/'docs/05-scrum').mkdir()
+            (d/'docs/05-scrum/product-backlog.md').write_text('backlog',encoding='utf-8')
+            (d/'docs/00-fuentes').mkdir()
+            (d/'docs/00-fuentes/manual.md').write_text('manual',encoding='utf-8')
+            (d/'src').mkdir(); (d/'src/code.py').write_text('code',encoding='utf-8')
+            (d/'specs').mkdir(); (d/'specs/HU-001.md').write_text('hu',encoding='utf-8')
+            state={'fases':{'arquitectura':{'por':'P','fecha':'2026-01-01','sha256':'a'},'backlog':{'por':'P','fecha':'2026-01-02','sha256':'b'}},'hu':{'HU-001':{'estado':'especificada'}}}
+            (d/'docs/estado.json').write_text(json.dumps(state),encoding='utf-8')
+            result=self.run_cmd(d,ROOT/'scripts/gate.py','revert','arquitectura','--modo','paso','--confirmar-eliminar-paso','--por','P','--motivo','rehacer')
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+            self.assertFalse((d/'docs/04-arquitectura').exists())
+            hist=next((d/'docs/historico-fases').iterdir())
+            self.assertEqual((hist/'docs/04-arquitectura/decisiones/ADR-001.md').read_text(),'stack')
+            self.assertEqual((hist/'docs/04-arquitectura/arquitectura-c4.md').read_text(),'diagrama')
+            for path in ('docs/00-fuentes/manual.md','docs/05-scrum/product-backlog.md','src/code.py','specs/HU-001.md'):
+                self.assertTrue((d/path).exists(),path)
+            current=json.loads((d/'docs/estado.json').read_text())
+            self.assertEqual(current['fases'],{})
+            self.assertEqual(current['hu'],state['hu'])
+            self.assertEqual(current['reversiones'][-1]['modo'],'paso')
+
+    def test_architecture_catalog_beyond_five_categories(self):
+        txt=(ROOT/'skills/ssdd-arquitectura/SKILL.md').read_text(encoding='utf-8').lower()
+        for term in ('tailwind','colas','caché','observabilidad','autenticación','ci/cd','no aplica','detenerse'):
+            self.assertIn(term,txt)
+
     def test_update_existing_project_installs_new_skill_preserves_data(self):
         with tempfile.TemporaryDirectory() as tmp:
             d=Path(tmp)
@@ -62,6 +109,6 @@ class FeatureTests(unittest.TestCase):
             self.assertTrue((d/'.opencode/commands/ssdd-revertir.md').exists())
             self.assertEqual((s/'02-requisitos/DERCAS.md').read_text(),'MIS REQUISITOS')
             self.assertEqual((d/'src/example.py').read_text(),'keep')
-            self.assertEqual((d/'.framework/VERSION').read_text().strip(),'0.4.6')
+            self.assertEqual((d/'.framework/VERSION').read_text().strip(),'0.4.7')
 
 if __name__=='__main__': unittest.main()

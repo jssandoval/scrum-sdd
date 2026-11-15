@@ -13,7 +13,7 @@ class CLITests(unittest.TestCase):
     def test_version(self):
         r = subprocess.run([sys.executable, CLI, 'version'], capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertEqual(r.stdout.strip(), '0.4.6')
+        self.assertEqual(r.stdout.strip(), '0.4.7')
 
     def test_init_preserves_project_data(self):
         with tempfile.TemporaryDirectory() as t:
@@ -57,7 +57,7 @@ class CLITests(unittest.TestCase):
             self.assertTrue(launcher.is_file())
             r = subprocess.run([launcher, 'version'], env=env, capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, r.stderr)
-            self.assertEqual(r.stdout.strip(), '0.4.6')
+            self.assertEqual(r.stdout.strip(), '0.4.7')
 
 
 if __name__ == '__main__':

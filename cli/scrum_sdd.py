@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import sys
 
-VERSION = '0.4.6'
+VERSION = '0.4.7'
 AGENTS = ('all', 'claude', 'codex', 'opencode', 'antigravity', 'pi')
 DOC_CATEGORIES = ('manuales', 'lineamientos', 'formularios', 'matrices', 'requerimientos', 'otros')
 DOC_DIRS = ('01-descubrimiento', '02-requisitos', '03-diseno', '04-arquitectura/decisiones', '05-scrum/sprints', '06-pruebas', '07-operacion')

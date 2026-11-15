@@ -1,10 +1,23 @@
-> **SSDD v0.4.6**: Nombre corto de Scrum SDD. Todos los skills usan prefijo `ssdd-` (por ejemplo `/ssdd-descubrir`, `/ssdd-aprobar`). La CLI se llama `ssdd`. El repositorio GitHub sigue siendo `jssandoval/scrum-sdd`.
+> **SSDD v0.4.7**: Nombre corto de Scrum SDD. Todos los skills usan prefijo `ssdd-` (por ejemplo `/ssdd-descubrir`, `/ssdd-aprobar`). La CLI se llama `ssdd`. El repositorio GitHub sigue siendo `jssandoval/scrum-sdd`.
 
 # SSDD — Scrum Spec-Driven Development
 
 Framework de desarrollo asistido por IA que lleva un proyecto desde la idea hasta producción combinando **Scrum**, **Spec-Driven Development** y el documento **DERCAS** (ISO/IEC/IEEE 29148).
 
 El agente trabaja fase por fase. Cada fase termina en una puerta que solo una persona puede abrir, y la trazabilidad requisito → criterio → historia → prueba se valida de forma automática.
+
+## Arquitectura y reversión (v0.4.7)
+
+`/ssdd-arquitectura` analiza el alcance completo, propone los componentes **necesarios** (interfaz, estilos/Tailwind si conviene, backend, persistencia, interoperabilidad, colas, caché, seguridad, despliegue, observabilidad y otros), explica alternativas y pide al programador **aceptar o modificar cada decisión**. Las opciones que no aplican se justifican; nunca se asume aceptación por silencio.
+
+`/ssdd-revertir` tiene dos opciones, ambas con histórico en `docs/historico-fases/`:
+
+```text
+/ssdd-revertir arquitectura --modo aprobacion --por "Persona" --motivo "Revisar elección"
+/ssdd-revertir arquitectura --modo paso --por "Persona" --motivo "Rehacer arquitectura"
+```
+
+La opción `paso` **requiere confirmación humana explícita adicional**, guarda una copia verificable y retira únicamente los entregables de la fase; no borra `src/`, `tests/`, `specs/` ni documentos de otras fases. Ambas modalidades anulan las aprobaciones de esa fase y posteriores; no hacen rollback de Git.
 
 ## Qué incluye
 
@@ -46,11 +59,11 @@ ssdd init
 ssdd doctor
 ```
 
-**Importante:** estos instaladores funcionan cuando esté publicada la etiqueta `v0.4.6` en el repositorio. Descargan una versión etiquetada, no el código cambiante de `main`. Puedes revisar los scripts antes de ejecutarlos. No requieren Node.js, npm, uv, pip ni Homebrew.
+**Importante:** estos instaladores funcionan cuando esté publicada la etiqueta `v0.4.7` en el repositorio. Descargan una versión etiquetada, no el código cambiante de `main`. Puedes revisar los scripts antes de ejecutarlos. No requieren Node.js, npm, uv, pip ni Homebrew.
 
 Guía para el mantenedor: [Publicar en GitHub y crear Releases](docs/PUBLICAR-EN-GITHUB.md).
 
-## Instalación fácil (v0.4.6)
+## Instalación fácil (v0.4.7)
 
 1. Descarga y descomprime el ZIP. Abre la terminal **dentro de la carpeta `scrum-sdd`**.
 2. Ejecuta el comando correspondiente a tu sistema operativo:
@@ -292,7 +305,7 @@ scrum-sdd/
 
 ## Estado del proyecto
 
-Versión 0.4.6. Incluye validación de evidencias y pruebas automáticas del framework. Los cinco agentes siguen pendientes de pruebas integrales en proyectos reales.
+Versión 0.4.7. Incluye validación de evidencias y pruebas automáticas del framework. Los cinco agentes siguen pendientes de pruebas integrales en proyectos reales.
 
 ## Licencia
 
@@ -315,7 +328,7 @@ El inventario es automático (ruta, tamaño, SHA-256); **la interpretación de c
 **Guía:** [Cómo usar documentos fuente](docs/USAR-DOCUMENTOS-FUENTE.md). **Ejemplo completo:** [Registro de clientes con manual y formulario contradictorios](examples/registro-clientes/README.md).
 
 
-## Actualización desde instalaciones anteriores (v0.4.6 y previas)
+## Actualización desde instalaciones anteriores (v0.4.7 y previas)
 
 En macOS/Linux, vuelve a ejecutar el instalador remoto documentado arriba para actualizar la CLI global y sus recursos. En Windows, ejecuta de nuevo el instalador remoto PowerShell. Después entra al proyecto y ejecuta:
 

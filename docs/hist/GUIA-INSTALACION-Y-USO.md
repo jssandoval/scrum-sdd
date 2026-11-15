@@ -1,4 +1,4 @@
-> En la versión 0.4.6, los comandos de agente llevan prefijo `ssdd-` y la CLI se ejecuta como `ssdd`.
+> En la versión 0.4.7, los comandos de agente llevan prefijo `ssdd-` y la CLI se ejecuta como `ssdd`.
 
 # Instalación y uso de SSDD (Scrum-SDD) v0.4.5
 
@@ -364,9 +364,9 @@ IDEA
 **Nota de seguridad:** las restricciones de invocación humana de `/ssdd-aprobar` y `/ssdd-aceptar` funcionan como instrucciones/integraciones de los agentes, no como autenticación fuerte. No se debe presentar el archivo de estado local como prueba criptográfica de identidad.
 
 
-## Actualizar la instalación y un proyecto existente (v0.4.6)
+## Actualizar la instalación y un proyecto existente (v0.4.7)
 
-En macOS/Linux y Windows, ejecuta de nuevo el instalador global desde el paquete o GitHub (cuando la etiqueta v0.4.6 esté publicada). Abre otra terminal; desde el directorio de tu proyecto:
+En macOS/Linux y Windows, ejecuta de nuevo el instalador global desde el paquete o GitHub (cuando la etiqueta v0.4.7 esté publicada). Abre otra terminal; desde el directorio de tu proyecto:
 
 ```bash
 ssdd update
@@ -387,3 +387,17 @@ En `/ssdd-arquitectura` el agente consulta qué quieres utilizar en frontend, ba
 ```
 
 Archiva documentos de la fase y el estado previo en `docs/historico-fases/`, revoca la aprobación de esa fase y las posteriores y deja el trabajo original intacto para revisión. No revierte commits ni borra historias o código. Vuelve a ejecutar `/ssdd-arquitectura` y luego `/ssdd-aprobar arquitectura --por "Nombre"`.
+
+
+## Arquitectura integral y reversión en SSDD 0.4.7
+
+Ejecuta `/ssdd-arquitectura`. El agente lee requisitos y necesidades y propone todas las decisiones técnicas que correspondan: UI y estilos, frontend, backend, interfaces de integración, bases de datos, almacenamiento, seguridad, colas y procesamiento asíncrono, caché, CI/CD, hosting, observabilidad, respaldo y otros. Explica cada propuesta, consulta tu decisión por componente y se detiene. Tú puedes aceptar todas sus recomendaciones o modificar las que necesites. Registra lo decidido en `propuesta-componentes.md` y ADR.
+
+Para revertir una fase terminada tienes dos variantes:
+
+```text
+/ssdd-revertir arquitectura --modo aprobacion --por "Persona" --motivo "Modificar ADR"
+/ssdd-revertir arquitectura --modo paso --por "Persona" --motivo "Rehacer desde cero"
+```
+
+`aprobacion` guarda histórico y retira aprobaciones sin borrar documentos. `paso` requiere una **confirmación explícita de eliminación**, archiva documentos y estado, comprueba el respaldo y retira únicamente entregables activos de esa fase. Ambas requieren revisar nuevamente las fases posteriores antes de aprobarlas. Ninguna opción borra código ni revierte Git.

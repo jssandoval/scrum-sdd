@@ -22,6 +22,12 @@ Qué RNF o restricción obliga a decidir.
 - Interoperabilidad: [elección o no aplica]
 - Persistencia: [elección]
 - Infraestructura: [elección]
+- UI/UX y estilos: [elección o no aplica]
+- API y protocolos: [elección o no aplica]
+- Seguridad e identidad: [elección]
+- Caché, colas, eventos y tareas: [elección o no aplica]
+- Observabilidad y operaciones: [elección]
+- Otros componentes identificados: [elección o no aplica]
 - Responsable de la elección: [nombre informado]
 - Alternativas recomendadas y motivo de aceptación o rechazo: [síntesis]
 
