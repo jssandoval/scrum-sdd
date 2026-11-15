@@ -1,19 +1,19 @@
-# Instalación simple de Scrum-SDD 0.4.0
+# Instalación simple de SSDD (Scrum-SDD) 0.4.5
 
 1. Descomprime el ZIP y entra en `scrum-sdd`.
 2. macOS/Linux: `sh install-cli.sh`. Windows PowerShell: `powershell -ExecutionPolicy Bypass -File .\install-cli.ps1`.
-3. Abre una nueva terminal, entra al proyecto y ejecuta `scrum-sdd init`.
-4. Verifica con `scrum-sdd doctor` y abre tu agente.
+3. Abre una nueva terminal, entra al proyecto y ejecuta `ssdd init`.
+4. Verifica con `ssdd doctor` y abre tu agente.
 
 No se necesita Node.js, npm, uv, pip ni crear entornos virtuales. Se requiere Python 3.9+ (ya utilizado por el framework) y el agente elegido.
 
 | Comando | Descripción |
 | --- | --- |
-| `scrum-sdd init [ruta]` | Inicializa/actualiza integraciones en el proyecto |
-| `scrum-sdd init --agent codex` | Solo integración Codex |
-| `scrum-sdd update [ruta]` | Sincroniza archivos del framework del proyecto |
-| `scrum-sdd version` | Muestra versión global |
-| `scrum-sdd doctor` | Diagnostica entorno y agentes |
+| `ssdd init [ruta]` | Inicializa/actualiza integraciones en el proyecto |
+| `ssdd init --agent codex` | Solo integración Codex |
+| `ssdd update [ruta]` | Sincroniza archivos del framework del proyecto |
+| `ssdd version` | Muestra versión global |
+| `ssdd doctor` | Diagnostica entorno y agentes |
 
 **Actualizar la CLI global:** descomprime una nueva versión y repite su instalador. `update` solo sincroniza proyectos; no consulta Internet.
 

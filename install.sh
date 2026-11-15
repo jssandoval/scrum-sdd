@@ -39,6 +39,6 @@ cp "$SRC"/VERSION "$DEST"/.framework/VERSION
 [ -f "$DEST/CLAUDE.md" ] || echo "@AGENTS.md" > "$DEST/CLAUDE.md"
 [ -f "$DEST/docs/estado.json" ] || echo '{"fases": {}, "hu": {}}' > "$DEST/docs/estado.json"
 
-echo "scrum-sdd $(cat "$SRC"/VERSION) instalado en $DEST"
+echo "ssdd $(cat "$SRC"/VERSION) instalado en $DEST"
 echo "Harnesses: Claude Code, Codex, OpenCode, Antigravity, Pi"
-echo "Siguiente paso: abre tu agente en el proyecto y ejecuta /descubrir (en Codex: \$descubrir)"
+echo "Siguiente paso: abre tu agente en el proyecto y ejecuta /ssdd-descubrir (en Codex: \$ssdd-descubrir)"

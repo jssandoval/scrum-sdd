@@ -11,8 +11,8 @@ def main():
     if sys.version_info < (3, 9):
         raise SystemExit('Se necesita Python 3.9 o superior.')
     if os.name == 'nt':
-        home = Path(os.environ.get('APPDATA', Path.home()))/'scrum-sdd'
-        bin_dir = Path(os.environ.get('LOCALAPPDATA', Path.home()))/'Programs'/'scrum-sdd'/'bin'
+        home = Path(os.environ.get('APPDATA', Path.home()))/'ssdd'
+        bin_dir = Path(os.environ.get('LOCALAPPDATA', Path.home()))/'Programs'/'ssdd'/'bin'
     else:
         home = Path.home()/'.local/share/scrum-sdd'
         bin_dir = Path.home()/'.local/bin'
@@ -30,16 +30,16 @@ def main():
     for file in ('VERSION', 'LICENSE'):
         shutil.copy2(ROOT/file, home/file)
     if os.name == 'nt':
-        cmd = bin_dir/'scrum-sdd.cmd'
+        cmd = bin_dir/'ssdd.cmd'
         cmd.write_text('@echo off\r\n"'+sys.executable+'" "'+str(home/'cli/scrum_sdd.py')+'" %*\r\n', encoding='utf-8')
     else:
-        cmd = bin_dir/'scrum-sdd'
+        cmd = bin_dir/'ssdd'
         cmd.write_text('#!/bin/sh\nexec "'+sys.executable+'" "'+str(home/'cli/scrum_sdd.py')+'" "$@"\n', encoding='utf-8')
         cmd.chmod(0o755)
-    print('Instalación terminada: Scrum-SDD', (home/'VERSION').read_text().strip())
+    print('Instalación terminada: SSDD (Scrum-SDD)', (home/'VERSION').read_text().strip())
     print('Ejecutable:', cmd)
-    print('Para iniciar un proyecto: scrum-sdd init')
-    print('Para revisar el entorno: scrum-sdd doctor')
+    print('Para iniciar un proyecto: ssdd init')
+    print('Para revisar el entorno: ssdd doctor')
     if str(bin_dir) not in os.environ.get('PATH', '').split(os.pathsep):
         print('IMPORTANTE: el directorio de comandos no está en PATH:', bin_dir)
         print('Usa install-cli.sh (macOS/Linux) o install-cli.ps1 (Windows) para configurarlo automáticamente.')

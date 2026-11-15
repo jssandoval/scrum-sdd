@@ -1,8 +1,10 @@
-# Instalación y uso de Scrum-SDD v0.4.0
+> En la versión 0.4.6, los comandos de agente llevan prefijo `ssdd-` y la CLI se ejecuta como `ssdd`.
 
-## Instalar Scrum-SDD (una sola vez por equipo)
+# Instalación y uso de SSDD (Scrum-SDD) v0.4.5
 
-Descarga y descomprime `scrum-sdd-v0.4.0.zip` y abre una terminal en la carpeta `scrum-sdd`.
+## Instalar SSDD (Scrum-SDD) (una sola vez por equipo)
+
+Descarga y descomprime `scrum-sdd-v0.4.5.zip` y abre una terminal en la carpeta `scrum-sdd`.
 
 **macOS o Linux:**
 
@@ -23,33 +25,33 @@ powershell -ExecutionPolicy Bypass -File .\install-cli.ps1
 Entra a la carpeta de tu aplicación, nueva o existente:
 
 ```bash
-scrum-sdd init
-scrum-sdd doctor
+ssdd init
+ssdd doctor
 ```
 
-Se instala la integración de todos los agentes por defecto. Opcionalmente `scrum-sdd init --agent claude` instala solo esa integración. También se aceptan rutas, por ejemplo `scrum-sdd init ./mi-proyecto`.
+Se instala la integración de todos los agentes por defecto. Opcionalmente `ssdd init --agent claude` instala solo esa integración. También se aceptan rutas, por ejemplo `ssdd init ./mi-proyecto`.
 
-Actualiza recursos instalados de un proyecto con `scrum-sdd update`. Para actualizar la **CLI global** descomprime la nueva versión y vuelve a ejecutar su instalador.
+Actualiza recursos instalados de un proyecto con `ssdd update`. Para actualizar la **CLI global** descomprime la nueva versión y vuelve a ejecutar su instalador.
 
 **Seguridad de datos:** `init` conserva los documentos fuente, `docs/estado.json`, `AGENTS.md`, `CLAUDE.md`, specs, código y tests del proyecto. `update` reemplaza archivos del framework administrados por él; si personalizaste directamente los skills, respáldalos antes. El mecanismo de aprobación no cambia.
 
 ## Uso de los skills
 
-Abre tu agente desde el proyecto. Usa `/descubrir <idea>` (Codex `$descubrir`), revisa documentos, aprueba con `/aprobar descubrimiento --por "Nombre"` y sigue el ciclo DERCAS → diseño → arquitectura → backlog → setup → implementación → auditoría → release → operación, tal como se explica a continuación.
+Abre tu agente desde el proyecto. Usa `/ssdd-descubrir <idea>` (Codex `$ssdd-descubrir`), revisa documentos, aprueba con `/ssdd-aprobar descubrimiento --por "Nombre"` y sigue el ciclo DERCAS → diseño → arquitectura → backlog → setup → implementación → auditoría → release → operación, tal como se explica a continuación.
 
 ---
 
-## Instrucciones históricas de instalación (v0.3.0, reemplazadas en v0.4.0)
+## Instrucciones históricas de instalación (v0.3.0, reemplazadas en v0.4.5)
 
-Las instrucciones de instalación que siguen se conservan como referencia histórica. **Para instalar v0.4.0, utiliza los pasos anteriores.**
+Las instrucciones de instalación que siguen se conservan como referencia histórica. **Para instalar v0.4.5, utiliza los pasos anteriores.**
 
-# Guía de instalación y uso — Scrum-SDD v0.3.0
+# Guía de instalación y uso — SSDD (Scrum-SDD) v0.3.0
 
 Esta guía explica cómo instalar el framework en un proyecto, iniciar un desarrollo nuevo, trabajar por historias y usarlo en un sistema existente. Los ejemplos usan **Claude Code** en macOS o Linux. En Windows, utiliza **Git Bash** para ejecutar `install.sh`.
 
 ## 1. Qué hace el framework
 
-Scrum-SDD organiza el desarrollo en: **descubrimiento → requisitos DERCAS → diseño → arquitectura → backlog → configuración → implementación por historia → auditoría → release → operación**.
+SSDD (Scrum-SDD) organiza el desarrollo en: **descubrimiento → requisitos DERCAS → diseño → arquitectura → backlog → configuración → implementación por historia → auditoría → release → operación**.
 
 Los agentes generan artefactos, código y pruebas; el usuario revisa y aprueba las fases y acepta las historias. Las aprobaciones de fases caducan cuando cambia el archivo controlado por su hash. Esta restricción es de flujo de trabajo: **no autentica a una persona ni impide modificar el estado con acceso directo al sistema de archivos**.
 
@@ -96,7 +98,7 @@ Desde una terminal:
 bash "$HOME/proyectos/scrum-sdd/install.sh" "$HOME/proyectos/mi-primera-app"
 ```
 
-El instalador crea `.claude/skills/`, `.agents/skills/`, envoltorios para OpenCode y Pi, `.framework/`, `docs/`, `specs/`, `src/`, `tests/` y `CLAUDE.md`. **No genera la aplicación todavía**; eso se hace en `/setup`.
+El instalador crea `.claude/skills/`, `.agents/skills/`, envoltorios para OpenCode y Pi, `.framework/`, `docs/`, `specs/`, `src/`, `tests/` y `CLAUDE.md`. **No genera la aplicación todavía**; eso se hace en `/ssdd-setup`.
 
 Abre el directorio del proyecto con tu agente:
 
@@ -123,7 +125,7 @@ docs/00-fuentes/
 └── otros/             # diagramas, imágenes, anexos
 ```
 
-El skill `/descubrir` los inventaría e intenta leer su contenido; entrega evidencia exacta y contradicciones. Revisa `docs/01-descubrimiento/analisis-fuentes.md` antes de aprobar. `/dercas` vuelve a consultar fuentes y prepara `docs/02-requisitos/matriz-trazabilidad-documental.md`, con referencias por documento, página/hoja/sección. Si una fuente es ilegible, no se inventa su contenido.
+El skill `/ssdd-descubrir` los inventaría e intenta leer su contenido; entrega evidencia exacta y contradicciones. Revisa `docs/01-descubrimiento/analisis-fuentes.md` antes de aprobar. `/ssdd-dercas` vuelve a consultar fuentes y prepara `docs/02-requisitos/matriz-trazabilidad-documental.md`, con referencias por documento, página/hoja/sección. Si una fuente es ilegible, no se inventa su contenido.
 
 Consulta [Uso de documentos fuente](USAR-DOCUMENTOS-FUENTE.md) y el [ejemplo de registro de clientes](../examples/registro-clientes/README.md). Si no tienes archivos, puedes trabajar únicamente con la idea.
 
@@ -136,73 +138,73 @@ Ejemplo: un SaaS para gestionar citas en clínicas pequeñas. Ejecuta un skill p
 Dentro de Claude Code:
 
 ```text
-/descubrir Quiero desarrollar un SaaS para que pequeñas clínicas gestionen citas, pacientes y recordatorios.
+/ssdd-descubrir Quiero desarrollar un SaaS para que pequeñas clínicas gestionen citas, pacientes y recordatorios.
 ```
 
 Revisa `docs/01-descubrimiento/` (visión, problema, Lean Canvas e hipótesis). Si estás de acuerdo:
 
 ```text
-/aprobar descubrimiento --por "Tu Nombre"
+/ssdd-aprobar descubrimiento --por "Tu Nombre"
 ```
 
 ### Fase 1: requisitos
 
 ```text
-/dercas
+/ssdd-dercas
 ```
 
 Revisa `docs/02-requisitos/DERCAS.md`, incluidos RF, RNF, RN y CA:
 
 ```text
-/aprobar requisitos --por "Tu Nombre"
+/ssdd-aprobar requisitos --por "Tu Nombre"
 ```
 
 ### Fase 2: diseño
 
 ```text
-/diseno
+/ssdd-diseno
 ```
 
 Revisa flujos, design system e inventario en `docs/03-diseno/`:
 
 ```text
-/aprobar diseno --por "Tu Nombre"
+/ssdd-aprobar diseno --por "Tu Nombre"
 ```
 
 ### Fase 3: arquitectura
 
 ```text
-/arquitectura
+/ssdd-arquitectura
 ```
 
 Revisa los diagramas, modelo de datos, API, seguridad y ADR en `docs/04-arquitectura/`. Aquí se decide y justifica el stack tecnológico.
 
 ```text
-/aprobar arquitectura --por "Tu Nombre"
+/ssdd-aprobar arquitectura --por "Tu Nombre"
 ```
 
 ### Fase 4: planificación Scrum
 
 ```text
-/backlog
+/ssdd-backlog
 ```
 
 Revisa `docs/05-scrum/`: épicas, historias, Definition of Ready, Definition of Done y Sprint 1.
 
 ```text
-/aprobar backlog --por "Tu Nombre"
+/ssdd-aprobar backlog --por "Tu Nombre"
 ```
 
 ### Fase 5: entorno de desarrollo
 
 ```text
-/setup
+/ssdd-setup
 ```
 
 El agente genera `AGENTS.md` y configura estructura, herramientas, pruebas iniciales y CI según la arquitectura aprobada. Comprueba que el proyecto compile y pasen las verificaciones.
 
 ```text
-/aprobar setup --por "Tu Nombre"
+/ssdd-aprobar setup --por "Tu Nombre"
 ```
 
 ## 6. Implementar y aceptar historias
@@ -212,7 +214,7 @@ Para cada historia del sprint sigue este ciclo dentro del agente:
 **1. Implementar una historia:**
 
 ```text
-/implementar HU-001
+/ssdd-implementar HU-001
 ```
 
 El agente ejecuta Specify → Clarify → Plan → Tasks → Implement → Converge. Puede detenerse para resolver contradicciones o confirmar el plan. La implementación debe incluir pruebas que comprueben sus criterios de aceptación.
@@ -221,7 +223,7 @@ El agente ejecuta Specify → Clarify → Plan → Tasks → Implement → Conve
 
 ```text
 /clear
-/auditar HU-001
+/ssdd-auditar HU-001
 ```
 
 `/clear` es un comando de Claude Code para limpiar el contexto; como alternativa abre una sesión nueva. Corrige hallazgos críticos o altos y vuelve a auditar cuando corresponda.
@@ -231,7 +233,7 @@ El agente ejecuta Specify → Clarify → Plan → Tasks → Implement → Conve
 Tras revisar y probar personalmente el resultado (UAT):
 
 ```text
-/aceptar HU-001 --por "Tu Nombre"
+/ssdd-aceptar HU-001 --por "Tu Nombre"
 ```
 
 Repite para `HU-002`, `HU-003`, etc. El agente **no debe registrar su propia aceptación**.
@@ -241,7 +243,7 @@ Repite para `HU-002`, `HU-003`, etc. El agente **no debe registrar su propia ace
 Cuando las historias del incremento estén aceptadas:
 
 ```text
-/release
+/ssdd-release
 ```
 
 Revisa el Dockerfile, la configuración de CI/CD, el runbook, las notas de versión, secretos y entorno de destino. **El despliegue real depende de configurar infraestructura y credenciales; el framework no sustituye esa configuración.** La autorización de producción se realiza en la plataforma CI/CD.
@@ -249,7 +251,7 @@ Revisa el Dockerfile, la configuración de CI/CD, el runbook, las notas de versi
 Después de comprobar un despliegue en producción:
 
 ```text
-/operar
+/ssdd-operar
 ```
 
 Esto documenta SLO/SLA, registros, métricas, alertas y postmortems.
@@ -259,14 +261,14 @@ Esto documenta SLO/SLA, registros, métricas, alertas y postmortems.
 Dentro del agente:
 
 ```text
-/estado
-/trazabilidad
-/trazabilidad HU-001
+/ssdd-estado
+/ssdd-trazabilidad
+/ssdd-trazabilidad HU-001
 ```
 
-- `/estado`: muestra fases aprobadas, estados de historias y aprobaciones vencidas.
-- `/trazabilidad`: valida asociaciones RF → CA → HU → pruebas.
-- `/trazabilidad HU-001`: comprueba los criterios asociados a la historia indicada.
+- `/ssdd-estado`: muestra fases aprobadas, estados de historias y aprobaciones vencidas.
+- `/ssdd-trazabilidad`: valida asociaciones RF → CA → HU → pruebas.
+- `/ssdd-trazabilidad HU-001`: comprueba los criterios asociados a la historia indicada.
 
 Si un control se bloquea, revisa el motivo que devuelve el agente y corrige la fase o evidencia correspondiente; no edites `docs/estado.json` manualmente.
 
@@ -283,16 +285,16 @@ claude
 Dentro del agente, usa el carril `feature` para comenzar a documentar el sistema y preparar su entorno:
 
 ```text
-/dercas
-/aprobar requisitos --por "Tu Nombre" --carril feature
-/setup
-/aprobar setup --por "Tu Nombre" --carril feature
+/ssdd-dercas
+/ssdd-aprobar requisitos --por "Tu Nombre" --carril feature
+/ssdd-setup
+/ssdd-aprobar setup --por "Tu Nombre" --carril feature
 ```
 
 Para una funcionalidad nueva, documenta el cambio, mantenlo en el backlog e impleméntalo por historia. Para una corrección urgente, usa el carril `hotfix`:
 
 ```text
-/implementar HU-042 --carril hotfix
+/ssdd-implementar HU-042 --carril hotfix
 ```
 
 Un hotfix exige una prueba de regresión y auditoría.
@@ -301,11 +303,11 @@ Un hotfix exige una prueba de regresión y auditoría.
 
 | Agente | Inicio habitual | Invocación de ejemplo |
 | --- | --- | --- |
-| Claude Code | `claude` | `/descubrir` |
-| Codex | `codex` | `$descubrir` o selector de skills |
-| OpenCode | `opencode` | `/descubrir` |
-| Pi | `pi` | `/descubrir` o `/skill:descubrir` |
-| Antigravity | Interfaz o CLI disponible | `/descubrir` (según integración) |
+| Claude Code | `claude` | `/ssdd-descubrir` |
+| Codex | `codex` | `$ssdd-descubrir` o selector de skills |
+| OpenCode | `opencode` | `/ssdd-descubrir` |
+| Pi | `pi` | `/ssdd-descubrir` o `/skill:descubrir` |
+| Antigravity | Interfaz o CLI disponible | `/ssdd-descubrir` (según integración) |
 
 El instalador crea integraciones para estos agentes, pero la disponibilidad y las restricciones exactas dependen de sus versiones. Valida los comandos en tu instalación.
 
@@ -334,29 +336,54 @@ Se vuelven a copiar scripts, skills y plantillas. El instalador conserva `docs/`
 
 | Problema | Qué hacer |
 | --- | --- |
-| No aparece `/descubrir` | Reinicia el agente desde la carpeta del proyecto y verifica la instalación |
-| Aparece `BLOQUEADO` | Ejecuta `/estado`; revisa aprobaciones y artefactos pendientes |
-| Una aprobación caducó | Revisa los cambios del documento y vuelve a ejecutar `/aprobar` |
-| Falla `/trazabilidad` | Corrige las referencias o pruebas y vuelve a ejecutar el comando |
+| No aparece `/ssdd-descubrir` | Reinicia el agente desde la carpeta del proyecto y verifica la instalación |
+| Aparece `BLOQUEADO` | Ejecuta `/ssdd-estado`; revisa aprobaciones y artefactos pendientes |
+| Una aprobación caducó | Revisa los cambios del documento y vuelve a ejecutar `/ssdd-aprobar` |
+| Falla `/ssdd-trazabilidad` | Corrige las referencias o pruebas y vuelve a ejecutar el comando |
 | No se acepta `HU-001` | Completa implementación, auditoría y aceptación humana en orden |
-| `/release` no avanza | Verifica historias aceptadas y controles del carril |
+| `/ssdd-release` no avanza | Verifica historias aceptadas y controles del carril |
 
 ## 14. Resumen del flujo
 
 ```text
 IDEA
-  ↓ /descubrir      → /aprobar descubrimiento
-  ↓ /dercas         → /aprobar requisitos
-  ↓ /diseno         → /aprobar diseno
-  ↓ /arquitectura   → /aprobar arquitectura
-  ↓ /backlog        → /aprobar backlog
-  ↓ /setup          → /aprobar setup
-  ↓ /implementar HU-001
-  ↓ /auditar HU-001 (contexto independiente)
-  ↓ /aceptar HU-001 (persona, tras UAT)
+  ↓ /ssdd-descubrir      → /ssdd-aprobar descubrimiento
+  ↓ /ssdd-dercas         → /ssdd-aprobar requisitos
+  ↓ /ssdd-diseno         → /ssdd-aprobar diseno
+  ↓ /ssdd-arquitectura   → /ssdd-aprobar arquitectura
+  ↓ /ssdd-backlog        → /ssdd-aprobar backlog
+  ↓ /ssdd-setup          → /ssdd-aprobar setup
+  ↓ /ssdd-implementar HU-001
+  ↓ /ssdd-auditar HU-001 (contexto independiente)
+  ↓ /ssdd-aceptar HU-001 (persona, tras UAT)
   ↓ Repetir por historia
-  ↓ /release        → autorización de producción en CI/CD
-  ↓ /operar
+  ↓ /ssdd-release        → autorización de producción en CI/CD
+  ↓ /ssdd-operar
 ```
 
-**Nota de seguridad:** las restricciones de invocación humana de `/aprobar` y `/aceptar` funcionan como instrucciones/integraciones de los agentes, no como autenticación fuerte. No se debe presentar el archivo de estado local como prueba criptográfica de identidad.
+**Nota de seguridad:** las restricciones de invocación humana de `/ssdd-aprobar` y `/ssdd-aceptar` funcionan como instrucciones/integraciones de los agentes, no como autenticación fuerte. No se debe presentar el archivo de estado local como prueba criptográfica de identidad.
+
+
+## Actualizar la instalación y un proyecto existente (v0.4.6)
+
+En macOS/Linux y Windows, ejecuta de nuevo el instalador global desde el paquete o GitHub (cuando la etiqueta v0.4.6 esté publicada). Abre otra terminal; desde el directorio de tu proyecto:
+
+```bash
+ssdd update
+ssdd version
+ssdd doctor
+```
+
+`ssdd update` actualiza scripts y skills administrados, **sin borrar** documentos, estados de aprobación, fuentes ni código. Cierra y vuelve a abrir el agente para cargar `ssdd-revertir`.
+
+## La decisión del stack es del programador
+
+En `/ssdd-arquitectura` el agente consulta qué quieres utilizar en frontend, backend, interoperabilidad, persistencia e infraestructura; muestra recomendaciones comparadas y se detiene para que elijas. Guarda las elecciones en ADR-001 antes de generar el diseño definitivo. No acepta el silencio como aprobación.
+
+## Deshacer la aprobación de una fase
+
+```text
+/ssdd-revertir arquitectura --por "Nombre" --motivo "Deseo cambiar el stack"
+```
+
+Archiva documentos de la fase y el estado previo en `docs/historico-fases/`, revoca la aprobación de esa fase y las posteriores y deja el trabajo original intacto para revisión. No revierte commits ni borra historias o código. Vuelve a ejecutar `/ssdd-arquitectura` y luego `/ssdd-aprobar arquitectura --por "Nombre"`.

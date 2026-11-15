@@ -43,7 +43,7 @@ Entonces se guarda
         (self.p/'specs/HU-001.md').write_text('# HU-001\nEspecificación completa\n')
 
     def test_instalacion(self):
-        self.assertTrue((self.p/'.claude/skills/aceptar/SKILL.md').exists())
+        self.assertTrue((self.p/'.claude/skills/ssdd-aceptar/SKILL.md').exists())
         self.assertTrue((self.p/'.framework/scripts/gate.py').exists())
 
     def test_no_acepta_historia_sin_evidencia(self):

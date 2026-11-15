@@ -8,6 +8,8 @@ import pathlib
 import sys
 import re
 import subprocess
+import shutil
+import uuid
 
 STATE = pathlib.Path("docs/estado.json")
 PHASES = [
@@ -201,6 +203,53 @@ def cmd_hu(state, args):
     return 0
 
 
+def cmd_revert(state, args):
+    """Archiva fase aprobada y anula aprobaciones dependientes sin borrar documentos ni código."""
+    phase = args.fase
+    if not state.get('fases', {}).get(phase):
+        print(f"ERROR: fase '{phase}' no está aprobada; no hay aprobación que revertir.")
+        return 1
+    # Se trata de una reversión controlada del workflow; la identidad es declarativa.
+    stamp = datetime.datetime.now().strftime('%Y%m%dT%H%M%S%f')
+    archive = pathlib.Path('docs/historico-fases') / f'{stamp}-{phase}-{uuid.uuid4().hex[:8]}'
+    archive.mkdir(parents=True, exist_ok=False)
+    idx = ORDER.index(phase)
+    invalidated = ORDER[idx:]
+    previous = {p: state.get('fases', {}).get(p) for p in invalidated if p in state.get('fases', {})}
+    # Guardar evidencia documental completa de la fase y el estado previo.
+    folder_map = {
+        'descubrimiento': 'docs/01-descubrimiento', 'requisitos': 'docs/02-requisitos',
+        'diseno': 'docs/03-diseno', 'arquitectura': 'docs/04-arquitectura',
+        'backlog': 'docs/05-scrum', 'setup': None,
+    }
+    folder = folder_map[phase]
+    if folder and pathlib.Path(folder).exists():
+        shutil.copytree(folder, archive / folder, dirs_exist_ok=True)
+    elif pathlib.Path(ARTIFACT[phase]).exists():
+        dest = archive / ARTIFACT[phase]
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ARTIFACT[phase], dest)
+    # Si se revierten requisitos, no tocar documentación fuente de terceros.
+    old_state = json.dumps(state, ensure_ascii=False, indent=2) + '\n'
+    (archive / 'estado-anterior.json').write_text(old_state, encoding='utf-8')
+    record = {
+        'fase': phase, 'por': args.por, 'motivo': args.motivo,
+        'fecha': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        'aprobaciones_invalidadas': list(previous),
+        'hu_conservadas': len(state.get('hu', {})),
+        'nota': 'Se revocan las aprobaciones desde esta fase. No se modifican documentos, código ni HU.',
+    }
+    (archive / 'reversion.json').write_text(json.dumps(record, indent=2, ensure_ascii=False)+'\n', encoding='utf-8')
+    for p in invalidated:
+        state.get('fases', {}).pop(p, None)
+    state.setdefault('reversiones', []).append({**record, 'ruta': archive.as_posix()})
+    save(state)
+    print(f'OK: fase {phase} revertida por {args.por}. Histórico: {archive}')
+    print('Aprobaciones invalidadas:', ', '.join(previous))
+    print('Documentación, código e historias existentes preservados para revisión.')
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -223,6 +272,12 @@ def main():
     p.add_argument("estado", choices=HU_STATES)
     p.add_argument("--por")
     p.set_defaults(fn=cmd_hu)
+
+    p = sub.add_parser('revert', help='Archiva una fase aprobada y revoca esta y las posteriores')
+    p.add_argument('fase', choices=ORDER)
+    p.add_argument('--por', required=True)
+    p.add_argument('--motivo', required=True)
+    p.set_defaults(fn=cmd_revert)
 
     args = parser.parse_args()
     sys.exit(args.fn(load(), args))

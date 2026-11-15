@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
-# Instala Scrum-SDD desde una etiqueta estable. Solo requiere Python 3.9+.
+# Instala SSDD (Scrum-SDD) desde una etiqueta estable. Solo requiere Python 3.9+.
 # Ejemplo: curl -fsSL https://raw.githubusercontent.com/jssandoval/scrum-sdd/main/install-remote.sh | sh
 set -eu
-VERSION="${SCRUM_SDD_VERSION:-v0.4.0}"
-case "$VERSION" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo 'Versión inválida (usa v0.4.0).' >&2; exit 1 ;; esac
+VERSION="${SSDD_VERSION:-v0.4.6}"
+case "$VERSION" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo 'Versión inválida (usa v0.4.6).' >&2; exit 1 ;; esac
 if command -v python3 >/dev/null 2>&1; then PY=python3
 elif command -v python >/dev/null 2>&1; then PY=python
 else echo 'Falta Python 3.9 o superior.' >&2; exit 1; fi
@@ -11,7 +11,7 @@ else echo 'Falta Python 3.9 o superior.' >&2; exit 1; fi
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT HUP INT TERM
 URL="https://github.com/jssandoval/scrum-sdd/archive/refs/tags/${VERSION}.zip"
-echo "Descargando Scrum-SDD ${VERSION}..."
+echo "Descargando SSDD (Scrum-SDD) ${VERSION}..."
 if command -v curl >/dev/null 2>&1; then curl -fLsS --retry 2 "$URL" -o "$TMP_DIR/framework.zip"
 elif command -v wget >/dev/null 2>&1; then wget -q "$URL" -O "$TMP_DIR/framework.zip"
 else echo 'Necesitas curl o wget.' >&2; exit 1; fi
@@ -30,4 +30,4 @@ PY
 ROOT="$TMP_DIR/scrum-sdd-${VERSION#v}"
 if [ ! -f "$ROOT/install-cli.sh" ]; then echo 'ERROR: no se encontró instalador.' >&2; exit 1; fi
 sh "$ROOT/install-cli.sh"
-echo "Instalado ${VERSION}. Abre otra terminal y ejecuta: scrum-sdd doctor"
+echo "Instalado ${VERSION}. Abre otra terminal y ejecuta: ssdd doctor"

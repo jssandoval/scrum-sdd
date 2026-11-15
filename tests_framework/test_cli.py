@@ -13,7 +13,7 @@ class CLITests(unittest.TestCase):
     def test_version(self):
         r = subprocess.run([sys.executable, CLI, 'version'], capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertEqual(r.stdout.strip(), '0.4.0')
+        self.assertEqual(r.stdout.strip(), '0.4.6')
 
     def test_init_preserves_project_data(self):
         with tempfile.TemporaryDirectory() as t:
@@ -29,10 +29,10 @@ class CLITests(unittest.TestCase):
             self.assertEqual((path/'CLAUDE.md').read_text(), 'custom instructions')
             self.assertEqual((path/'src/app.py').read_text(), 'existing business code')
             self.assertTrue((path/'.framework/scripts/gate.py').is_file())
-            self.assertTrue((path/'.claude/skills/dercas/SKILL.md').is_file())
-            self.assertTrue((path/'.agents/skills/dercas/SKILL.md').is_file())
-            self.assertTrue((path/'.opencode/commands/dercas.md').is_file())
-            self.assertTrue((path/'.pi/prompts/dercas.md').is_file())
+            self.assertTrue((path/'.claude/skills/ssdd-dercas/SKILL.md').is_file())
+            self.assertTrue((path/'.agents/skills/ssdd-dercas/SKILL.md').is_file())
+            self.assertTrue((path/'.opencode/commands/ssdd-dercas.md').is_file())
+            self.assertTrue((path/'.pi/prompts/ssdd-dercas.md').is_file())
             self.assertTrue((path/'docs/00-fuentes/manuales').is_dir())
             r = subprocess.run([sys.executable, CLI, 'update', str(path)], capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, r.stderr)
@@ -43,7 +43,7 @@ class CLITests(unittest.TestCase):
             p = Path(t)/'new'
             r = subprocess.run([sys.executable, CLI, 'init', str(p), '--agent', 'codex'], capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, r.stderr)
-            self.assertTrue((p/'.agents/skills/dercas/SKILL.md').is_file())
+            self.assertTrue((p/'.agents/skills/ssdd-dercas/SKILL.md').is_file())
             self.assertFalse((p/'.claude/skills').exists())
 
     def test_install_global_without_dependencies(self):
@@ -53,11 +53,11 @@ class CLITests(unittest.TestCase):
             # Forces test out of real user's home by creating temporary isolated HOME.
             r = subprocess.run([sys.executable, ROOT/'install-cli.py'], env=env, capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, r.stderr)
-            launcher = home/'.local/bin/scrum-sdd'
+            launcher = home/'.local/bin/ssdd'
             self.assertTrue(launcher.is_file())
             r = subprocess.run([launcher, 'version'], env=env, capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, r.stderr)
-            self.assertEqual(r.stdout.strip(), '0.4.0')
+            self.assertEqual(r.stdout.strip(), '0.4.6')
 
 
 if __name__ == '__main__':
