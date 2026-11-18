@@ -1,336 +1,266 @@
-> **SSDD v0.4.7**: Nombre corto de Scrum SDD. Todos los skills usan prefijo `ssdd-` (por ejemplo `/ssdd-descubrir`, `/ssdd-aprobar`). La CLI se llama `ssdd`. El repositorio GitHub sigue siendo `jssandoval/scrum-sdd`.
-
 # SSDD — Scrum Spec-Driven Development
 
-Framework de desarrollo asistido por IA que lleva un proyecto desde la idea hasta producción combinando **Scrum**, **Spec-Driven Development** y el documento **DERCAS** (ISO/IEC/IEEE 29148).
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#requirements)
+[![Agents](https://img.shields.io/badge/agents-Claude%20Code%20%7C%20Codex%20%7C%20OpenCode%20%7C%20Antigravity%20%7C%20Pi-6e5494.svg)](#supported-agents)
 
-El agente trabaja fase por fase. Cada fase termina en una puerta que solo una persona puede abrir, y la trazabilidad requisito → criterio → historia → prueba se valida de forma automática.
+**English** | [Español](README.es.md)
 
-## Arquitectura y reversión (v0.4.7)
+> AI coding agents invent requirements, lose traceability between specs and code, and drift past phases nobody approved. SSDD stops that: every phase ends at a gate only a human can open, and the chain **requirement → acceptance criterion → user story → test** is validated automatically, not by trusting the agent's word.
 
-`/ssdd-arquitectura` analiza el alcance completo, propone los componentes **necesarios** (interfaz, estilos/Tailwind si conviene, backend, persistencia, interoperabilidad, colas, caché, seguridad, despliegue, observabilidad y otros), explica alternativas y pide al programador **aceptar o modificar cada decisión**. Las opciones que no aplican se justifican; nunca se asume aceptación por silencio.
+SSDD takes a project from idea to production by combining **Scrum**, **Spec-Driven Development**, and the **DERCAS** document (ISO/IEC/IEEE 29148). It works phase by phase, inside the agent you already use — no new IDE, no new chat window.
 
-`/ssdd-revertir` tiene dos opciones, ambas con histórico en `docs/historico-fases/`:
+## Why SSDD
 
-```text
-/ssdd-revertir arquitectura --modo aprobacion --por "Persona" --motivo "Revisar elección"
-/ssdd-revertir arquitectura --modo paso --por "Persona" --motivo "Rehacer arquitectura"
+If you've tried a spec-driven workflow with an AI agent before, you've probably hit one of these:
+
+- The agent "approves itself" and moves on to the next phase.
+- Requirements, acceptance criteria, and tests drift apart silently — nobody notices until QA or production.
+- Reverting a bad architectural decision means either living with it or nuking the whole history.
+
+SSDD's answer to each:
+
+| Problem | SSDD mechanism |
+| --- | --- |
+| Agent self-approves | `/ssdd-aprobar` and `/ssdd-aceptar` only run when a human types them, with `--por "Name"` attached |
+| Spec/code drift | `/ssdd-trazabilidad` fails loudly if a requirement has no criterion, a story has no requirement, or a criterion has no test |
+| Can't undo a phase safely | `/ssdd-revertir` archives the phase with a verifiable copy in `docs/historico-fases/` and revokes downstream approvals — without touching `src/`, `tests/`, or other phases' docs |
+| Editing an approved doc goes unnoticed | Approval becomes invalid automatically the moment the approved document changes |
+
+## How it works
+
+```
+idea ──▶ discovery ──▶ requirements ──▶ design ──▶ architecture ──▶ backlog ──▶ setup
+                 (each phase ends at a human-only approval gate)
+                                │
+                                ▼
+          per story:  implement ──▶ audit (fresh session) ──▶ accept ──▶ release ──▶ operate
 ```
 
-La opción `paso` **requiere confirmación humana explícita adicional**, guarda una copia verificable y retira únicamente los entregables de la fase; no borra `src/`, `tests/`, `specs/` ni documentos de otras fases. Ambas modalidades anulan las aprobaciones de esa fase y posteriores; no hacen rollback de Git.
+No phase starts until the previous one is approved. No story is accepted until it's been audited in a clean session — the person who wrote the code doesn't audit it.
 
-## Qué incluye
-
-- **10 skills de fase**, del descubrimiento a la operación.
-- **5 skills de control** para aprobar, aceptar y consultar el estado.
-- **Puertas de control**: ninguna fase inicia si la anterior no fue aprobada. La aprobación caduca si el documento aprobado se edita.
-- **Validación de trazabilidad**: falla si un requisito no tiene criterio, una historia no tiene requisito o un criterio no tiene prueba.
-- **Tres carriles** según el tamaño del cambio: completo, feature y hotfix.
-
-## Requisitos
-
-- Python **3.9 o superior** (ya requerido por los validadores del framework).
-- Un agente compatible: Claude Code, Codex, OpenCode, Antigravity o Pi.
-- **No necesitas Node.js, npm, uv, pip, Homebrew ni instalar paquetes Python.**
-- Git es recomendable para trabajar en el proyecto, pero no es obligatorio para instalar SSDD (Scrum-SDD).
-
-**Guía detallada:** [Instalación y uso paso a paso](docs/GUIA-INSTALACION-Y-USO.md).
-
-## Instalación desde GitHub (recomendada)
-
-Repositorio oficial: **https://github.com/jssandoval/scrum-sdd**.
-
-En **macOS / Linux** (Python 3.9+):
+## Quick start
 
 ```bash
+# macOS / Linux
 curl -fsSL https://raw.githubusercontent.com/jssandoval/scrum-sdd/main/install-remote.sh | sh
-```
 
-En **Windows / PowerShell** (Python 3.9+):
-
-```powershell
+# Windows / PowerShell
 irm https://raw.githubusercontent.com/jssandoval/scrum-sdd/main/install-remote.ps1 | iex
 ```
 
-Después abre una terminal nueva y, dentro de tu proyecto:
+Then, inside your project, in a new terminal:
 
 ```bash
 ssdd init
 ssdd doctor
 ```
 
-**Importante:** estos instaladores funcionan cuando esté publicada la etiqueta `v0.4.7` en el repositorio. Descargan una versión etiquetada, no el código cambiante de `main`. Puedes revisar los scripts antes de ejecutarlos. No requieren Node.js, npm, uv, pip ni Homebrew.
+Restart your agent so it picks up the new skills, then:
 
-Guía para el mantenedor: [Publicar en GitHub y crear Releases](docs/PUBLICAR-EN-GITHUB.md).
-
-## Instalación fácil (v0.4.7)
-
-1. Descarga y descomprime el ZIP. Abre la terminal **dentro de la carpeta `scrum-sdd`**.
-2. Ejecuta el comando correspondiente a tu sistema operativo:
-
-**macOS / Linux**
-
-```bash
-sh install-cli.sh
+```
+/ssdd-descubrir A workshop app for scheduling car repair appointments over WhatsApp
 ```
 
-**Windows (PowerShell)**
+Review what landed in `docs/01-descubrimiento/` and approve it:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install-cli.ps1
+```
+/ssdd-aprobar descubrimiento --por "Your Name"
 ```
 
-3. Abre una **nueva terminal** y ejecuta en cualquier proyecto:
+That's the whole loop: run a skill, review what it generated, approve or send it back. Repeat through the remaining phases (full command reference below).
+
+> Installers download a tagged release (`v0.4.7`), not the changing `main` branch. You can read the script before running it. No Node.js, npm, uv, pip, or Homebrew required.
+
+## What's included
+
+- **10 phase skills** — from discovery to operation.
+- **5 control skills** — approve, accept, check status, validate traceability, revert.
+- **Approval gates** — no phase starts if the previous one isn't approved; approval invalidates itself if the approved document is edited afterward.
+- **Traceability validation** — fails if a requirement has no criterion, a story has no requirement, or a criterion has no test.
+- **Three lanes** sized to the change: `complete` (new product), `feature` (addition to an existing project), `hotfix` (urgent fix).
+- **Source-document ingestion** — start from manuals, forms, or spreadsheets (PDF/Word/Excel/Markdown/images) instead of a blank idea; SSDD builds a documentary traceability matrix with source IDs and SHA-256-verified locations.
+
+## Requirements
+
+- Python **3.9+** (used by the framework's own validators).
+- A supported agent: Claude Code, Codex, OpenCode, Antigravity, or Pi.
+- **No Node.js, npm, uv, pip, or Homebrew needed.**
+- Git is recommended for working on the project, not required to install SSDD.
+
+Detailed guide: [Installation and usage, step by step](docs/GUIA-INSTALACION-Y-USO.md) *(Spanish)*.
+
+## Installation
+
+Official repo: **https://github.com/jssandoval/scrum-sdd**
+
+### From GitHub (recommended)
 
 ```bash
-cd ruta/a/mi-proyecto
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/jssandoval/scrum-sdd/main/install-remote.sh | sh
+
+# Windows / PowerShell
+irm https://raw.githubusercontent.com/jssandoval/scrum-sdd/main/install-remote.ps1 | iex
+```
+
+```bash
 ssdd init
 ssdd doctor
 ```
 
-`init` configura todos los agentes compatibles por defecto. Para uno específico usa `ssdd init --agent claude` (también `codex`, `opencode`, `antigravity`, `pi`). En un proyecto existente, **no sobrescribe** `docs/estado.json`, `CLAUDE.md`, tus documentos fuente, specs ni código.
+### From a downloaded ZIP
 
-### Comandos de distribución
+1. Unzip and open a terminal **inside the `scrum-sdd` folder**.
+2. Run the installer for your OS:
 
-| Comando | Función |
+   ```bash
+   sh install-cli.sh            # macOS / Linux
+   ```
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\install-cli.ps1   # Windows
+   ```
+3. Open a **new terminal** and, in any project:
+
+   ```bash
+   cd path/to/my-project
+   ssdd init
+   ssdd doctor
+   ```
+
+`ssdd init` sets up every compatible agent by default. For one specific agent: `ssdd init --agent claude` (also `codex`, `opencode`, `antigravity`, `pi`). On an existing project it never overwrites `docs/estado.json`, `CLAUDE.md`, your source documents, specs, or code.
+
+### CLI commands
+
+| Command | Does |
 | --- | --- |
-| `ssdd init [ruta]` | Preparar un proyecto nuevo o existente |
-| `ssdd doctor` | Comprobar entorno y detectar agentes |
-| `ssdd version` | Mostrar versión instalada |
-| `ssdd update [ruta]` | Sincronizar recursos administrados en un proyecto |
+| `ssdd init [path]` | Set up a new or existing project |
+| `ssdd doctor` | Check environment and detect agents |
+| `ssdd version` | Show installed version |
+| `ssdd update [path]` | Sync managed resources into a project |
 
-**Para actualizar la CLI global** a una versión descargada más reciente, vuelve a ejecutar `install-cli.sh` / `install-cli.ps1` desde la carpeta de esa nueva versión. `update` no descarga archivos ni cambia la versión instalada globalmente.
+To update the global CLI itself, re-run `install-cli.sh` / `install-cli.ps1` from a newer downloaded version — `ssdd update` does not do this.
 
-**Instalación antigua:** `bash install.sh /ruta/a/mi-proyecto` sigue disponible en macOS/Linux por compatibilidad; en Windows utiliza la nueva CLI.
-
-La inicialización crea esto en tu proyecto:
+### What gets created in your project
 
 ```
-mi-proyecto/
-├── CLAUDE.md             # apunta a AGENTS.md
-├── .claude/skills/       # los 15 skills (Claude Code)
-├── .agents/skills/       # los mismos skills (Codex, OpenCode, Antigravity, Pi)
-├── .opencode/commands/   # comandos de barra para OpenCode
-├── .pi/prompts/          # comandos de barra para Pi
-├── .framework/           # plantillas, scripts y versión
+my-project/
+├── CLAUDE.md             # points to AGENTS.md
+├── .claude/skills/       # the 15 skills (Claude Code)
+├── .agents/skills/       # the same skills (Codex, OpenCode, Antigravity, Pi)
+├── .opencode/commands/   # slash-command wrappers for OpenCode
+├── .pi/prompts/          # slash-command wrappers for Pi
+├── .framework/           # templates, scripts, version
 ├── docs/
-│   ├── 00-fuentes/       # documentación aportada (manuales, formularios, etc.)
-│   ├── estado.json       # estado de puertas e historias
-│   ├── 01-descubrimiento/
-│   ├── 02-requisitos/
-│   ├── 03-diseno/
-│   ├── 04-arquitectura/
-│   ├── 05-scrum/
-│   ├── 06-pruebas/
-│   └── 07-operacion/
-├── specs/                # una spec por historia
+│   ├── 00-fuentes/       # source documents you provide (manuals, forms...)
+│   ├── estado.json       # gate and story status
+│   ├── 01-descubrimiento/ … 07-operacion/
+├── specs/                # one spec per story
 ├── src/
 └── tests/
 ```
 
-Si el agente ya estaba abierto en el proyecto, reinícialo para que cargue los skills.
+## Commands reference
 
-## Inicio rápido
+### Phase skills
 
-Todo se hace con skills dentro del agente. Los ejemplos usan `/`; en Codex escribe `$` en su lugar (`$ssdd-descubrir`, `$ssdd-aprobar`). El ciclo es siempre el mismo: lanzas el skill, el agente genera los documentos, tú los revisas y apruebas.
-
-```
-/ssdd-descubrir Una app para que talleres mecánicos agenden citas por WhatsApp
-```
-
-Revisa lo que dejó en `docs/01-descubrimiento/` y aprueba:
-
-```
-/ssdd-aprobar descubrimiento --por "Tu Nombre"
-```
-
-Continúa con las fases siguientes:
-
-```
-/ssdd-dercas                    luego  /ssdd-aprobar requisitos --por "Tu Nombre"
-/ssdd-diseno                    luego  /ssdd-aprobar diseno --por "Tu Nombre"
-/ssdd-arquitectura              luego  /ssdd-aprobar arquitectura --por "Tu Nombre"
-/ssdd-backlog                   luego  /ssdd-aprobar backlog --por "Tu Nombre"
-/ssdd-setup                     luego  /ssdd-aprobar setup --por "Tu Nombre"
-```
-
-Por cada historia del sprint:
-
-```
-/ssdd-implementar HU-001
-/clear
-/ssdd-auditar HU-001
-/ssdd-aceptar HU-001 --por "Tu Nombre"
-```
-
-El `/clear` (o una sesión nueva) antes de auditar es obligatorio: quien escribió el código no lo audita.
-
-Cuando todas las historias estén aceptadas:
-
-```
-/ssdd-release
-```
-
-## Comandos
-
-### Skills de fase
-
-| Skill | Fase | Qué produce | Se aprueba con |
+| Skill | Phase | Produces | Approved with |
 | --- | --- | --- | --- |
-| `/ssdd-descubrir <idea>` | 0. Descubrimiento | Visión, Lean Canvas, hipótesis | `/ssdd-aprobar descubrimiento` |
-| `/ssdd-dercas` | 1. Requisitos | `DERCAS.md` con RF, RNF, RN y CA en Gherkin | `/ssdd-aprobar requisitos` |
-| `/ssdd-diseno` | 2. Diseño | BPMN, navegación, design system, pantallas | `/ssdd-aprobar diseno` |
-| `/ssdd-arquitectura` | 3. Arquitectura | C4, modelo de datos, OpenAPI, ADRs | `/ssdd-aprobar arquitectura` |
-| `/ssdd-backlog` | 4. Planificación | Backlog, DoR, DoD, Sprint 1 | `/ssdd-aprobar backlog` |
-| `/ssdd-setup` | 5. Entorno | `AGENTS.md`, linters, Docker, CI | `/ssdd-aprobar setup` |
-| `/ssdd-implementar HU-XXX` | 6. Ejecución | Spec de la historia, pruebas y código | Revisión del Pull Request |
-| `/ssdd-auditar HU-XXX` | 7. QA y seguridad | Informe de auditoría, pruebas E2E | `/ssdd-aceptar HU-XXX` |
-| `/ssdd-release` | 8. Despliegue | Dockerfile, pipeline, runbook | Aprobación en CI/CD |
-| `/ssdd-operar` | 9. Operación | SLOs, telemetría, alertas | Review y Retrospectiva |
+| `/ssdd-descubrir <idea>` | 0. Discovery | Vision, Lean Canvas, hypotheses | `/ssdd-aprobar descubrimiento` |
+| `/ssdd-dercas` | 1. Requirements | `DERCAS.md` with functional/non-functional requirements, business rules, Gherkin acceptance criteria | `/ssdd-aprobar requisitos` |
+| `/ssdd-diseno` | 2. Design | BPMN, navigation, design system, screens | `/ssdd-aprobar diseno` |
+| `/ssdd-arquitectura` | 3. Architecture | C4 diagrams, data model, OpenAPI, ADRs | `/ssdd-aprobar arquitectura` |
+| `/ssdd-backlog` | 4. Planning | Backlog, Definition of Ready/Done, Sprint 1 | `/ssdd-aprobar backlog` |
+| `/ssdd-setup` | 5. Environment | `AGENTS.md`, linters, Docker, CI | `/ssdd-aprobar setup` |
+| `/ssdd-implementar HU-XXX` | 6. Execution | Story spec, tests, code | Pull Request review |
+| `/ssdd-auditar HU-XXX` | 7. QA & security | Audit report, E2E tests | `/ssdd-aceptar HU-XXX` |
+| `/ssdd-release` | 8. Deployment | Dockerfile, pipeline, runbook | CI/CD approval |
+| `/ssdd-operar` | 9. Operation | SLOs, telemetry, alerts | Review & retrospective |
 
-### Skills de control
+### Control skills
 
-| Skill | Para qué |
+| Skill | For |
 | --- | --- |
-| `/ssdd-estado` | Ver qué fases están aprobadas, el estado de cada historia y el siguiente paso |
-| `/ssdd-aprobar <fase> --por "<nombre>"` | Registrar la aprobación humana de una fase |
-| `/ssdd-aceptar HU-XXX --por "<nombre>"` | Registrar la aceptación de una historia tras la UAT |
-| `/ssdd-trazabilidad [HU-XXX]` | Validar la cadena requisito → criterio → historia → prueba |
-| `/ssdd-revertir <fase> --por "Nombre" --motivo "Razón"` | Archivar fase aprobada y revocar su aprobación y las posteriores |
+| `/ssdd-estado` | See which phases are approved, each story's status, and the next step |
+| `/ssdd-aprobar <phase> --por "<name>"` | Record human approval of a phase |
+| `/ssdd-aceptar HU-XXX --por "<name>"` | Record story acceptance after UAT |
+| `/ssdd-trazabilidad [HU-XXX]` | Validate the requirement → criterion → story → test chain |
+| `/ssdd-revertir <phase> --por "Name" --motivo "Reason"` | Archive an approved phase and revoke its approval and downstream ones |
 
-`/ssdd-aprobar` y `/ssdd-aceptar` solo se ejecutan cuando tú los escribes. En Claude Code y Pi el agente no puede invocarlos por su cuenta; en los demás depende de las instrucciones de `AGENTS.md`. **No es una garantía de identidad**: un usuario con acceso a la terminal o al repositorio puede modificar el estado.
+`/ssdd-aprobar` and `/ssdd-aceptar` only run when a human types them in chat. In Claude Code and Pi the agent cannot invoke them on its own; in the others it depends on `AGENTS.md` instructions. **This is not an identity guarantee** — anyone with terminal or repo access can alter the state file directly.
 
-## Carriles
+### `$` vs `/`
 
-No todo cambio necesita las diez fases.
+Examples above use `/`; in Codex, type `$` instead (`$ssdd-descubrir`, `$ssdd-aprobar`).
 
-| Carril | Cuándo usarlo | Flujo |
+## Lanes
+
+Not every change needs all ten phases.
+
+| Lane | When | Flow |
 | --- | --- | --- |
-| `completo` | Producto nuevo | Las diez fases en orden |
-| `feature` | Funcionalidad nueva en un proyecto ya instalado | `/ssdd-dercas` → `/ssdd-backlog` → `/ssdd-implementar` → `/ssdd-auditar` |
-| `hotfix` | Corrección urgente | `/ssdd-implementar` con prueba de regresión → `/ssdd-auditar` |
-
-Ejemplo de hotfix:
+| `complete` | New product | All ten phases, in order |
+| `feature` | New capability on an installed project | `/ssdd-dercas` → `/ssdd-backlog` → `/ssdd-implementar` → `/ssdd-auditar` |
+| `hotfix` | Urgent fix | `/ssdd-implementar` (with a regression test) → `/ssdd-auditar` |
 
 ```
 /ssdd-implementar HU-042 --carril hotfix
 ```
 
-### Adoptarlo en un proyecto existente
+### Adopting SSDD in an existing project
 
-1. Ejecuta `install.sh` sobre el proyecto.
-2. Lanza `/ssdd-dercas` para documentar lo que ya está construido.
-3. Aprueba en carril feature:
+1. Run `install.sh` against the project.
+2. Run `/ssdd-dercas` to document what's already built.
+3. Approve under the feature lane:
    ```
-   /ssdd-aprobar requisitos --por "Tu Nombre" --carril feature
+   /ssdd-aprobar requisitos --por "Your Name" --carril feature
    /ssdd-setup
-   /ssdd-aprobar setup --por "Tu Nombre" --carril feature
+   /ssdd-aprobar setup --por "Your Name" --carril feature
    ```
-4. Trabaja cada cambio nuevo en carril `feature` o `hotfix`.
+4. Work every new change under `feature` or `hotfix`.
 
-## Convenciones
+## Conventions
 
-Los scripts validan lo que tiene formato predecible. Respeta estos identificadores:
+Scripts validate anything with a predictable shape — keep these identifiers exact:
 
-| Elemento | Formato | Dónde |
+| Element | Format | Where |
 | --- | --- | --- |
-| Requisito funcional | `### RF-001 Título` + `**Prioridad:** Must` | DERCAS |
-| Requisito no funcional | `### RNF-001 Título` | DERCAS |
-| Regla de negocio | `### RN-001 Título` | DERCAS |
-| Criterio de aceptación | `### CA-001 (RF-001) Título` | DERCAS |
-| Historia de usuario | `### HU-001 Título` + `**Requisitos:** RF-001` | Product backlog |
-| Prueba | El nombre o comentario de una prueba con aserciones contiene `CA-001`; además debe ejecutarse la suite | `tests/` o `src/` |
+| Functional requirement | `### RF-001 Title` + `**Prioridad:** Must` | DERCAS |
+| Non-functional requirement | `### RNF-001 Title` | DERCAS |
+| Business rule | `### RN-001 Title` | DERCAS |
+| Acceptance criterion | `### CA-001 (RF-001) Title` | DERCAS |
+| User story | `### HU-001 Title` + `**Requisitos:** RF-001` | Product backlog |
+| Test | Test name/comment containing `CA-001`, with real assertions, and the suite actually runs | `tests/` or `src/` |
 
-- IDs de tres dígitos, nunca reutilizados. Un requisito descartado se marca `Won't`, no se borra.
-- Prioridad MoSCoW: `Must`, `Should`, `Could`, `Won't`.
-- Sin subencabezados dentro de la sección de un ID.
+- Three-digit IDs, never reused. A dropped requirement is marked `Won't`, never deleted.
+- MoSCoW priority: `Must`, `Should`, `Could`, `Won't`.
+- No sub-headings inside an ID's section.
 
-## Problemas frecuentes
+## Troubleshooting
 
-| Síntoma | Causa | Solución |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Un skill responde BLOQUEADO | Falta aprobar una fase anterior | `/ssdd-estado` para ver cuál, luego `/ssdd-aprobar` |
-| Una fase aprobada aparece como modificada | El documento se editó después de aprobarlo | Revisar el cambio y volver a `/ssdd-aprobar` |
-| `/ssdd-trazabilidad` falla | Un RF sin criterio, una historia sin RF o un criterio sin prueba | Corregir con el skill que indique el reporte |
-| `/ssdd-aceptar` rechaza la historia | No pasó por `/ssdd-auditar` | Auditar primero, en sesión nueva |
-| Los skills no aparecen al escribir `/` | El agente se abrió antes de instalar | Reiniciar el agente |
-| `/ssdd-release` responde BLOQUEADO | Hay historias sin aceptar | `/ssdd-estado` y aceptar las pendientes |
+| A skill replies BLOCKED | A prior phase isn't approved | `/ssdd-estado` to see which, then `/ssdd-aprobar` |
+| An approved phase shows as modified | The document was edited after approval | Review the change, then `/ssdd-aprobar` again |
+| `/ssdd-trazabilidad` fails | A requirement with no criterion, a story with no requirement, or a criterion with no test | Fix per the report's pointer |
+| `/ssdd-aceptar` rejects the story | It never went through `/ssdd-auditar` | Audit first, in a fresh session |
+| Skills don't show up after `/` | Agent was opened before installing | Restart the agent |
+| `/ssdd-release` replies BLOCKED | There are unaccepted stories | `/ssdd-estado`, then accept what's pending |
 
-## Integración continua
+## Continuous integration
 
-`/ssdd-setup` copia un workflow de GitHub Actions a `.github/workflows/ci-cd.yml`. En cada Pull Request valida trazabilidad, lint, pruebas y dependencias. El despliegue a producción exige historias aceptadas y una aprobación manual en el environment `production`. Debes configurar scripts reales de despliegue y smoke tests; si faltan, CI falla y no simula un despliegue.
+`/ssdd-setup` copies a GitHub Actions workflow to `.github/workflows/ci-cd.yml`. Every Pull Request validates traceability, lint, tests, and dependencies. Deploying to production requires accepted stories plus a manual approval on the `production` environment. You still need to wire in real deploy scripts and smoke tests — if they're missing, CI fails rather than faking a deployment.
 
-## Actualizar
+## Updating
 
 ```bash
 cd scrum-sdd && git pull
-./install.sh /ruta/a/mi-proyecto
+./install.sh /path/to/my-project
 ```
 
-Reinstalar actualiza skills, plantillas y scripts. No toca `docs/`, `specs/`, `AGENTS.md` ni tu código.
+Reinstalling updates skills, templates, and scripts. It never touches `docs/`, `specs/`, `AGENTS.md`, or your code.
 
-## Agentes soportados
-
-El instalador deja el proyecto listo para los cinco. Los skills son los mismos; cambia dónde los busca cada agente y cómo se invocan.
-
-| Agente | Lee los skills de | Reglas del proyecto | Invocación |
-| --- | --- | --- | --- |
-| Claude Code | `.claude/skills/` | `CLAUDE.md` → `AGENTS.md` | `/ssdd-aprobar ...` |
-| Codex | `.agents/skills/` | `AGENTS.md` | `$ssdd-aprobar ...` |
-| OpenCode | `.agents/skills/` | `AGENTS.md` | `/ssdd-aprobar ...` |
-| Antigravity y `agy` | `.agents/skills/` | `AGENTS.md` | `/ssdd-aprobar ...` |
-| Pi | `.agents/skills/` | `AGENTS.md` | `/ssdd-aprobar ...` o `/skill:aprobar ...` |
-
-Notas:
-
-- En OpenCode y Pi los comandos `/nombre` funcionan gracias a los envoltorios que el instalador genera en `.opencode/commands/` y `.pi/prompts/`.
-- En Pi los skills y plantillas del proyecto solo cargan después de marcar el proyecto como confiable.
-- Puedes cambiar de agente a mitad del proyecto: el estado vive en `docs/estado.json`, no en el agente.
-- Para auditar, usa siempre una sesión nueva si tu agente no tiene subagentes con contexto limpio.
-
-## Estructura del repo
-
-```
-scrum-sdd/
-├── LICENSE
-├── VERSION
-├── install.sh
-├── constitution/     # plantilla de AGENTS.md
-├── skills/           # 10 de fase + 4 de control
-├── templates/        # DERCAS, backlog, spec de historia, ADR, auditoría
-├── scripts/          # gate.py (puertas), trace.py (trazabilidad)
-├── ci/               # workflow de GitHub Actions
-└── examples/         # proyecto de muestra de punta a punta
-```
-
-## Estado del proyecto
-
-Versión 0.4.7. Incluye validación de evidencias y pruebas automáticas del framework. Los cinco agentes siguen pendientes de pruebas integrales en proyectos reales.
-
-## Licencia
-
-[MIT](LICENSE). Puedes usarlo, modificarlo y distribuirlo, también en proyectos comerciales, conservando el aviso de copyright.
-
-El instalador copia la licencia a `.framework/LICENSE` en cada proyecto para cumplir ese requisito.
-
-## Verificación del framework
-Ejecuta `python3 -m unittest discover -s tests_framework -v` desde el repositorio. El validador de trazabilidad usa una comprobación estructural básica: **no demuestra por sí solo** que una prueba verifica el requisito. Ejecuta siempre el test suite real, revisa su significado en `/ssdd-auditar` y bloquea los PR si fallan.
-
-## Restricción de aprobación
-`/ssdd-aprobar` y `/ssdd-aceptar` requieren invocación explícita por una persona en el chat, con `--por`. No se añade una autenticación extra. Es un control del flujo del agente, no una barrera frente a quien tenga acceso directo a los archivos o comandos de Python.
-
-## Documentos fuente: manuales, formularios y matrices
-
-**Ya puedes iniciar desde varios documentos**, no solo desde una idea. Copia PDF, Word, Excel, Markdown o imágenes a `docs/00-fuentes/` (subcarpetas `manuales/`, `lineamientos/`, `formularios/`, `matrices/`, `requerimientos/`, `otros/`). Ejecuta `/ssdd-descubrir`, revisa el inventario y análisis de fuentes, resuelve contradicciones y aprueba. `/ssdd-dercas` genera la matriz de trazabilidad documental con IDs de fuente y ubicación verificable.
-
-El inventario es automático (ruta, tamaño, SHA-256); **la interpretación de contenido depende del agente**. Un archivo no legible se declara como pendiente; no se inventan datos. Cambiar fuentes después de aprobar invalida las aprobaciones de descubrimiento o requisitos que correspondan.
-
-**Guía:** [Cómo usar documentos fuente](docs/USAR-DOCUMENTOS-FUENTE.md). **Ejemplo completo:** [Registro de clientes con manual y formulario contradictorios](examples/registro-clientes/README.md).
-
-
-## Actualización desde instalaciones anteriores (v0.4.7 y previas)
-
-En macOS/Linux, vuelve a ejecutar el instalador remoto documentado arriba para actualizar la CLI global y sus recursos. En Windows, ejecuta de nuevo el instalador remoto PowerShell. Después entra al proyecto y ejecuta:
+From older installs (v0.4.7 and earlier), re-run the remote installer above, then inside the project:
 
 ```bash
 ssdd update --agent all
@@ -338,16 +268,75 @@ ssdd version
 ssdd doctor
 ```
 
-`ssdd update` conserva `docs/estado.json`, DERCAS, documentación fuente y código. La versión anterior de los skills genéricos puede seguir instalada: sus archivos no se eliminan automáticamente para evitar borrar personalizaciones. Usa únicamente los comandos `ssdd-*`. El historial de cada reversión queda en `docs/historico-fases/`.
+`ssdd update` preserves `docs/estado.json`, DERCAS, source documentation, and code.
 
-## Elección del stack por el programador
+## Supported agents
 
-En `/ssdd-arquitectura`, el agente recomienda y pide que el programador elija **frontend, backend, interoperabilidad, persistencia e infraestructura** antes de generar el ADR definitivo. La decisión se conserva en `ADR-001-stack-tecnologico.md` y se aprueba junto con la fase.
+The installer prepares the project for all five. The skills themselves are identical — only where each agent looks for them and how it invokes them differs.
 
-## Revertir una fase aprobada
+| Agent | Reads skills from | Project rules | Invocation |
+| --- | --- | --- | --- |
+| Claude Code | `.claude/skills/` | `CLAUDE.md` → `AGENTS.md` | `/ssdd-aprobar ...` |
+| Codex | `.agents/skills/` | `AGENTS.md` | `$ssdd-aprobar ...` |
+| OpenCode | `.agents/skills/` | `AGENTS.md` | `/ssdd-aprobar ...` |
+| Antigravity / `agy` | `.agents/skills/` | `AGENTS.md` | `/ssdd-aprobar ...` |
+| Pi | `.agents/skills/` | `AGENTS.md` | `/ssdd-aprobar ...` or `/skill:aprobar ...` |
+
+- You can switch agents mid-project — state lives in `docs/estado.json`, not in the agent.
+- For audits, always use a fresh session if your agent doesn't support clean-context subagents.
+- In Pi, project skills/templates only load after marking the project as trusted.
+
+## Source documents: manuals, forms, and matrices
+
+You can start from existing documents instead of a blank idea. Drop PDFs, Word, Excel, Markdown, or images into `docs/00-fuentes/` (`manuales/`, `lineamientos/`, `formularios/`, `matrices/`, `requerimientos/`, `otros/`), run `/ssdd-descubrir`, review the inventory and contradiction analysis, resolve conflicts, and approve. `/ssdd-dercas` builds the documentary traceability matrix with source IDs and verifiable locations (path, size, SHA-256).
+
+The inventory step is automatic; **interpreting content is the agent's job**. An unreadable file is marked pending — nothing gets invented. Changing sources after approval invalidates the corresponding discovery/requirements approvals.
+
+Guide: [How to use source documents](docs/USAR-DOCUMENTOS-FUENTE.md) *(Spanish)*. Full example: [Customer registration with contradictory manual and form](examples/registro-clientes/README.md).
+
+## Stack choice stays with the developer
+
+During `/ssdd-arquitectura`, the agent recommends options and asks the developer to choose **frontend, backend, interoperability, persistence, and infrastructure** before producing the final ADR. The decision is recorded in `ADR-001-stack-tecnologico.md` and approved along with the phase.
+
+## Reverting an approved phase
 
 ```text
-/ssdd-revertir arquitectura --por "Nombre" --motivo "Modificar tecnología elegida"
+/ssdd-revertir arquitectura --por "Name" --motivo "Change the chosen technology"
 ```
 
-Se guarda copia del estado y documentos de la fase en `docs/historico-fases/`; las aprobaciones de esa fase y las posteriores se revocan. Los documentos originales, el código y las historias no se borran. Es una reversión del workflow, no un `git reset`.
+This saves a copy of the phase's state and documents under `docs/historico-fases/` and revokes approval for that phase and everything after it. Original documents, code, and stories are never deleted — it's a workflow revert, not a `git reset`.
+
+## Repo structure
+
+```
+scrum-sdd/
+├── LICENSE
+├── VERSION
+├── install.sh
+├── constitution/     # AGENTS.md template
+├── skills/           # 10 phase skills + 4 control skills
+├── templates/        # DERCAS, backlog, story spec, ADR, audit
+├── scripts/          # gate.py (gates), trace.py (traceability)
+├── ci/               # GitHub Actions workflow template
+└── examples/         # end-to-end sample project
+```
+
+## Project status
+
+Version 0.4.7. Includes evidence validation and the framework's own automated tests. All five agents are still pending full integration testing on real-world projects — issues and PRs welcome.
+
+## Verifying the framework itself
+
+```bash
+python3 -m unittest discover -s tests_framework -v
+```
+
+The traceability validator does a basic structural check — **it does not by itself prove** a test verifies a requirement. Always run the real test suite, review its meaning during `/ssdd-auditar`, and block the PR if it fails.
+
+## A note on the approval gate
+
+`/ssdd-aprobar` and `/ssdd-aceptar` require an explicit human invocation in chat, with `--por`. There's no additional authentication layer — this is a control on the agent's workflow, not a barrier against someone with direct file or terminal access.
+
+## License
+
+[MIT](LICENSE). Use, modify, and distribute freely, commercial use included, as long as the copyright notice stays. The installer copies the license into `.framework/LICENSE` in every project to satisfy that.
